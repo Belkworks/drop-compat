@@ -8,4 +8,8 @@ return {
 		key: string,
 		retry: boolean,
 	}) -> (),
+
+	externerror = function(err: string)
+		warn(debug.traceback(`extern error: {err}`))
+	end,
 }
