@@ -294,6 +294,11 @@ local function rtasync<T>(store: Store<T>, key: string)
 	end 
 end
 
+--- Prepares the transaction by applying all update functions in the first
+--- phase.
+--- 
+--- Returns true if all updates were prepared successfully, or false if any
+--- update failed to prepare.
 local function txprepareasync(fns: { [Store<any>]: { [string]: (any) -> any } }, txid: string): boolean
 	local thread: thread? = coroutine.running()
 	local total = 0
@@ -349,6 +354,8 @@ local function txprepareasync(fns: { [Store<any>]: { [string]: (any) -> any } },
 	return done == total
 end
 
+--- Commits the transaction by applying all prepared updates in the second
+--- phase.
 local function txcommitasync(fns: { [Store<any>]: { [string]: (any) -> any } }, txid: string)
 	local thread = coroutine.running()
 	local total = 0
@@ -386,6 +393,8 @@ local function txcommitasync(fns: { [Store<any>]: { [string]: (any) -> any } }, 
 	task.defer(tx.adoptasync, txid, successful)
 end
 
+--- Aborts the transaction by reverting all prepared updates in the second
+--- phase.
 local function txabortasync(fns: { [Store<any>]: { [string]: (any) -> any } }, txid: string)
 	local thread = coroutine.running()
 	local total = 0
@@ -425,6 +434,10 @@ local function txabortasync(fns: { [Store<any>]: { [string]: (any) -> any } }, t
 	tx.adoptasync(txid, successful)
 end
 
+--- Executes phase 2 of the transaction.
+--- 
+--- This attempts to commit the transaction, and if successful, commits all
+--- updates. If the commit fails, it aborts the transaction instead.
 local function txphase2(thread: thread, fns: { [Store<any>]: { [string]: (any) -> any } }, txid: string)
 	local status = tx.commitasync(txid)
 
@@ -437,6 +450,10 @@ local function txphase2(thread: thread, fns: { [Store<any>]: { [string]: (any) -
 	end
 end
 
+--- Executes phase 1 of the transaction.
+--- 
+--- This attempts to prepare all updates, and if successful, moves on to phase
+--- 2. If any update fails to prepare, it aborts the transaction instead.
 local function txphase1(thread: thread, fns: { [Store<any>]: { [string]: (any) -> any } }, txid: string)
 	local success = txprepareasync(fns, txid)
 
@@ -448,6 +465,11 @@ local function txphase1(thread: thread, fns: { [Store<any>]: { [string]: (any) -
 	end
 end
 
+--- Executes phase 0 of the transaction.
+--- 
+--- This acquires all necessary locks and creates the transaction, then moves on
+--- to phase 1. If the transaction cannot be created, it releases all locks and
+--- aborts.
 local function txphase0(thread: thread, fns: { [Store<any>]: { [string]: (any) -> any } })
 	local total = 0
 
@@ -638,6 +660,15 @@ local function updateasync<T>(store: Store<T>, key: string, fn: (T) -> T): T
 	end
 end
 
+--- Executes a transaction with multiple updates.
+--- 
+--- The provided function is called with a transaction function that can be
+--- used to queue updates on multiple stores and keys. The transaction will
+--- attempt to apply all updates atomically, and will error if any update
+--- fails.
+--- 
+--- If the transaction is successful, all updates will be committed. If any
+--- update fails, all updates will be reverted.
 local function txasync<T>(fn: (tx: <T>(store: Store<T>, key: string, fn: (T) -> T) -> ()) -> ())
 	local fns: { [Store<any>]: { [string]: (any) -> any } } = {}
 
