@@ -751,7 +751,7 @@ local function create<T>(opts: {
 	return store
 end
 
-return {
+return table.freeze({
 	create = create,
 	startrt = startrt,
 	waitforrt = waitforrt,
@@ -762,4 +762,4 @@ return {
 	viewasync = viewasync,
 	updateasync = updateasync,
 	txasync = txasync,
-}
+})

@@ -34,7 +34,7 @@ local function migrate<T, U>(schema: Schema<T>, migration: (T) -> U): Schema<U>
 	})
 end
 
-return {
+return table.freeze({
 	create = create,
 	migrate = migrate,
-}
+})

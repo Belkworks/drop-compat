@@ -134,10 +134,10 @@ local function removeasync(datastore: DataStore, key: string): boolean
 	return false
 end
 
-return {
+return table.freeze({
 	getdatastore = getdatastore,
 	getasync = getasync,
 	setasync = setasync,
 	updateasync = updateasync,
 	removeasync = removeasync,
-}
+})

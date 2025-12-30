@@ -21,7 +21,7 @@ local function externcall<Arg, Ret>(fn: (Arg) -> Ret, arg: Arg): (boolean, Ret)
 	end, fn, arg)
 end
 
-return {
+return table.freeze({
 	deepfreeze = deepfreeze,
 	externcall = externcall,
-}
+})

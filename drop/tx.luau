@@ -125,9 +125,9 @@ local function resolveasync(txid: string): TxStatus
 	return attempt(txid)
 end
 
-return {
+return table.freeze({
 	createasync = createasync,
 	commitasync = commitasync,
 	adoptasync = adoptasync,
 	resolveasync = resolveasync,
-}
+})
