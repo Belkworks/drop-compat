@@ -11,7 +11,7 @@ jobs:
   
     - name: Install rojo
       run: |
-        gh release download -R rojo-rbx/rojo -p "*-linux-x86_64.zip" -o "rojo.zip"
+        gh release download -R rojo-rbx/rojo -p "*-linux-x86_64.zip" -O "rojo.zip"
         unzip rojo.zip
         chmod +x ./rojo
       
