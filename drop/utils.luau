@@ -1,8 +1,12 @@
 local callbacks = require("./callbacks")
 
 local function deepfreeze<T>(tbl: T): T
+	if table.isfrozen(tbl) then
+		return tbl
+	end
+
 	for _, v in tbl :: { [any]: any } do
-		if type(v) == "table" and not table.isfrozen(v) then
+		if type(v) == "table" then
 			deepfreeze(v)
 		end
 	end
