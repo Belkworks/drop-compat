@@ -7,13 +7,42 @@ export type function partial(tbl: type)
 		new:setreadproperty(k, types.optional(read))
 	end
 
+	new:setindexer(types.any, types.never)
 	return new
 end
 
-local function merge<T>(base: T, override: partial<T>): T
-	local result: any = table.clone(base :: any)
+local function write<T>(tbl: T, write: partial<T>): T
+	local result: any = table.clone(tbl :: any)
 
-	for k, v in override :: { [any]: any } do
+	for k, v in write :: { [any]: any } do
+		result[k] = v
+	end
+
+	return table.freeze(result :: any)
+end
+
+export type function merge(tbla: type, tblb: type)
+	assert(tbla:is("table"), "merge can only be applied to tables")
+	assert(tblb:is("table"), "merge can only be applied to tables")
+	local new = types.newtable()
+
+	for k, v in tbla:properties() do
+		local read = assert(v.read, "properties cannot be write-only")
+		new:setreadproperty(k, read)
+	end
+
+	for k, v in tblb:properties() do
+		local read = assert(v.read, "properties cannot be write-only")
+		new:setreadproperty(k, read)
+	end
+
+	return new
+end
+
+local function merge<T, U>(tbla: T, tblb: U): merge<T, U>
+	local result: any = table.clone(tbla :: any)
+
+	for k, v in tblb :: { [any]: any } do
 		result[k] = v
 	end
 
@@ -52,6 +81,7 @@ local function set<T, K>(tbl: T, key: K & keyof<T>, value: index<T, K>): T
 end
 
 return {
+	write = write,
 	merge = merge,
 	omit = omit,
 	with = with,
