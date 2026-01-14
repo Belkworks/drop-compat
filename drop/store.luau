@@ -268,15 +268,21 @@ local function rtasync<T>(store: Store<T>, key: string)
 			if data then
 				store.session.state[key] = "active"
 				refresh(store, key, data)
+
+				for _, thread in store.session.waiting[key] do
+					task.defer(thread)
+				end
+
+				store.session.waiting[key] = nil
 			elseif not store.session.cache[key] then
 				refresh(store, key, store.schema.initial)
-			end
 
-			for _, thread in store.session.waiting[key] do
-				task.defer(thread)
-			end
+				for _, thread in store.session.waiting[key] do
+					task.defer(thread)
+				end
 
-			store.session.waiting[key] = nil
+				store.session.waiting[key] = nil
+			end
 		elseif store.session.queue[key] then
 			local record = flushasync(store, key)
 
