@@ -20,28 +20,47 @@ export type Store<T> = {
 		read queue: { [string]: { (T) -> T } },
 		read observers: { (key: string, data: T) -> () },
 	},
+
+	read importer: ((any) -> T)?,
 }
 
 type Record = {
 	version: number,
 	data: any,
+	drop: 'drop',
 	tx: {
 		id: string,
 		data: any,
 	}?,
 }
 
+--- Checks if the given data is a drop record.
+local function isDrop(data: any?): boolean
+	return type(data) == "table" and data.drop == 'drop'
+end
+
 --- Unwraps a record loaded from the datastore, returning an initial record if
 --- none exists.
-local function unwraprecord<T>(store: Store<T>, record: Record?): Record
-	if record == nil then
+local function unwraprecord<T>(store: Store<T>, data: any?): Record
+	if data == nil then
 		return {
 			data = store.schema.initial,
 			version = #store.schema.migrations,
+			drop = 'drop',
 		}
 	end
 
-	return record
+	if isDrop(data) then
+		return data :: Record
+	end
+
+	assert(store.importer, "no importer defined for legacy data")
+
+	return {
+		data = store.importer(data),
+		version = 0,
+		drop = 'drop',
+	}
 end
 
 --- Migrations a record to the latest schema version, returning nil if a 
@@ -72,6 +91,7 @@ local function migraterecord<T>(store: Store<T>, key: string, record: Record): R
 	return {
 		data = data,
 		version = #schema.migrations,
+		drop = 'drop',
 	}
 end
 
@@ -729,6 +749,7 @@ local function create<T>(opts: {
 	name: string,
 	schema: schema.Schema<T>,
 	sessiontime: number?,
+	importer: ((any) -> T)?
 }): Store<T>
 	local store: Store<T> = {
 		source = rbxapi.getdatastore(opts.name),
@@ -746,6 +767,8 @@ local function create<T>(opts: {
 			queue = {},
 			observers = {},
 		},
+
+		importer = opts.importer,
 	}
 
 	game:BindToClose(function()
