@@ -1,6 +1,7 @@
 local callbacks = require("@self/callbacks")
 local schema = require("@self/schema")
 local store = require("@self/store")
+local importers = require("@self/importers")
 
 export type Schema<T> = schema.Schema<T>
 export type Store<T> = store.Store<T>
@@ -21,4 +22,6 @@ return table.freeze({
 	viewasync = store.viewasync,
 	updateasync = store.updateasync,
 	txasync = store.txasync,
+
+	importers = importers
 })
