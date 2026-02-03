@@ -5,7 +5,8 @@
   "types": "drop/index.d.ts",
   "files": [
     "drop",
-    "!**/*.tsbuildinfo"
+    "!drop/.luaurc",
+    "!drop/wally.toml"
   ],
   "publishConfig": {
     "access": "public"
