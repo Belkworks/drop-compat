@@ -53,7 +53,7 @@ export function updateasync<T>(
 	store: Store<T>,
 	key: string,
 	fn: (data: T) => T,
-): thread;
+): T;
 
 export function txasync<T>(
 	fn: (
