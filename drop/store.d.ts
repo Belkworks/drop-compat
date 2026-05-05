@@ -30,6 +30,8 @@ export function startsession<T>(store: Store<T>, key: string): void;
 
 export function waitforsession<T>(store: Store<T>, key: string): void;
 
+export function issessionactive<T>(store: Store<T>, key: string): boolean;
+
 export function stopsessionasync<T>(store: Store<T>, key: string): thread;
 
 export function view<T>(store: Store<T>, key: string): T;
