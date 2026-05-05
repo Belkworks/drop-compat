@@ -47,7 +47,7 @@ export function observe<T>(
 	fn: (key: string, data: T) => void,
 ): void;
 
-export function viewasync<T>(store: Store<T>, key: string): thread;
+export function viewasync<T>(store: Store<T>, key: string): T;
 
 export function updateasync<T>(
 	store: Store<T>,
